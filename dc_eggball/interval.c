@@ -1,18 +1,60 @@
 #include "data/scripts/dc_eggball/config.h"
 
-int dc_eggball_interval(void instance)
+void dc_eggball_set_member_interval(int value)
+{
+
+    char id;
+
+    // Get ID.
+    id = dc_eggball_get_instance() + DC_EGGBALL_MEMBER_INTERVAL;
+
+    // If value is default, make sure the variable
+    // is deleted.
+    if (value == DC_EGGBALL_DEFAULT_INTERVAL)
+    {
+        value = NULL();
+    }
+
+    setlocalvar(id, value);
+}
+
+// Returns current interval or default if not set.
+int dc_eggball_get_member_interval()
+{
+
+    char id;
+    int result;
+
+    // Get id.
+    id = dc_eggball_get_instance() + DC_EGGBALL_MEMBER_INTERVAL;
+
+    result = getlocalvar(id);
+
+    if (typeof(result) != openborconstant("VT_INTEGER"))
+    {
+        result = DC_EGGBALL_DEFAULT_INTERVAL;
+    }
+
+    return result;
+}
+
+int dc_eggball_interval()
 {
     int result;
     int elapsed_current;    // Current gametime.
     int interval;           // Time interval.
+    int instance;           // Instance index.
     int last_occurrence;    // Time of triggered instance.
     int difference;         // Time difference.
+
+    // Which instance are we using?
+    instance = dc_eggball_get_instance();
 
     // Populate in-line vars.
     result          = DC_EGGBALL_FLAG_FALSE;
     elapsed_current = openborvariant("elapsed_time");
-    last_occurrence = getlocalvar(DC_EGGBALL_LAST + instance);
-    interval        = getlocalvar(DC_EGGBALL_INTERVAL + instance);
+    last_occurrence = getlocalvar(DC_EGGBALL_MEMBER_LAST + instance);
+    interval        = dc_eggball_get_member_interval();
 
     // If last occurrence is empty or
     // exceeds elapsed time then re-zero.
@@ -22,7 +64,7 @@ int dc_eggball_interval(void instance)
     }
 
     // If no interval is set, then use default.
-    if(typeof(interval) == openborconstant("VT_EMPTY"))
+    if(!interval)
     {
         interval = DC_EGGBALL_DEFAULT_INTERVAL;
     }
@@ -37,7 +79,7 @@ int dc_eggball_interval(void instance)
     if(difference >= interval)
     {
         result = DC_EGGBALL_FLAG_TRUE;
-        setlocalvar(DC_EGGBALL_LAST + instance, elapsed_current);
+        setlocalvar(DC_EGGBALL_MEMBER_LAST + instance, elapsed_current);
     }
 
     return result;
